@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Myopia Calculation</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .graph-container {
+        width: 100%;
+        max-width: 600px; /* Adjust the max-width as needed */
+        margin: 0 auto;
+    }
+    #tabularChart {
+        width: 100%;
+        height: 350px; /* Adjust the height as needed */
+    }
+</style>
+</head>
+<body>
+<h1>Myopia Calculation</h1>
+
+<div class="form-container">
+    <div class="input-group">
+        <label for="age">Child's Age (years): </label>
+        <select id="age" required>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label for="previousMyopia">Previous Myopia Level (diopters): </label>
+        <input type="number" id="previousMyopia" step="0.01" required>
+    </div>
+    <div class="input-group">
+        <label for="activity">Activity Performing: </label>
+        <div class="checkbox-container">
+            <input type="checkbox" id="indoorActivity" value="indoorActivity">
+            <label for="indoorActivity">Indoor Activity</label>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="nearWork" value="nearWork">
+            <label for="nearWork">Near Work</label>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="parentHeredity" value="parentHeredity">
+            <label for="parentHeredity">Parent Heredity</label>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="acUse" value="acUse">
+            <label for="acUse">Peripheral Hyperopia</label>
+        </div>
+    </div>
+
+    <button onclick="calculateMyopia()">Calculate Myopia</button>
+
+    <div class="result">
+        <h2>Calculation Results:</h2>
+        <ul class="myopia-list" id="myopiaResults"></ul>
+    </div>
+</div>
+
+<div class="graph-container">
+    <canvas id="tabularChart"></canvas>
+</div>
+
+<script>
+    function calculateMyopia() {
+        var age = parseInt(document.getElementById("age").value);
+        var previousMyopia = parseFloat(document.getElementById("previousMyopia").value);
+        var indoorActivity = document.getElementById("indoorActivity").checked;
+        var nearWork = document.getElementById("nearWork").checked;
+        var parentHeredity = document.getElementById("parentHeredity").checked;
+        var acUse = document.getElementById("acUse").checked;
+
+        // Calculate total activity impact per year
+        var activityImpactPerSixMonths = 0;
+        if (indoorActivity) activityImpactPerSixMonths -= 0.1;
+        if (nearWork) activityImpactPerSixMonths -= 0.1;
+        if (parentHeredity) activityImpactPerSixMonths -= 0.1;
+        if (acUse) activityImpactPerSixMonths -= 0.1;
+
+        var myopiaResults = document.getElementById("myopiaResults");
+        myopiaResults.innerHTML = ''; // Clear previous results
+
+        var ageLabels = [];
+        var myopiaValues = [];
+
+        while (age <= 20) {
+            var growthRate;
+            if (age >= 3 && age < 6) {
+                growthRate = -0.55;
+            } else if (age >= 6 && age < 10) {
+                growthRate = -0.45;
+            } else if (age >= 10 && age < 14) {
+                growthRate = -0.35;
+            } else {
+                growthRate = -0.25; // For ages 14 and above
+            }
+
+            // Apply the growth rate and activity impact for each six-month period
+            for (var i = 0; i < 2; i++) { // Each year has 2 six-month periods
+                previousMyopia += (growthRate + activityImpactPerSixMonths);
+            }
+
+            myopiaResults.innerHTML += `<li>Age ${age}: ${previousMyopia.toFixed(2)} Diopters</li>`;
+            ageLabels.push(age);
+            myopiaValues.push(previousMyopia.toFixed(2));
+
+            age++;
+        }
+
+        // Color coding for bar chart from red to green
+        var backgroundColors = myopiaValues.map(value => {
+            let myopia = parseFloat(value);
+            if (myopia >= -1) return 'rgba(255, 99, 132, 0.6)'; // Red
+            else if (myopia >= -2) return 'rgba(255, 159, 64, 0.6)'; // Orange
+            else if (myopia >= -3) return 'rgba(255, 205, 86, 0.6)'; // Yellow
+            else if (myopia >= -4) return 'rgba(75, 192, 192, 0.6)'; // Green
+            else return 'rgba(54, 162, 235, 0.6)'; // Blue
+        });
+
+        var tabularCtx = document.getElementById('tabularChart').getContext('2d');
+        new Chart(tabularCtx, {
+            type: 'bar',
+            data: {
+                labels: ageLabels,
+                datasets: [{
+                    label: 'Myopia Level (Diopters)',
+                    data: myopiaValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' Diopters';
+                            },
+                            stepSize: 1,
+                            suggestedMin: 0,
+                            suggestedMax: -15
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Myopia Levels by Age (Bar Chart)'
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
