@@ -77,100 +77,105 @@
 
 <script>
     function calculateMyopia() {
-        var age = parseInt(document.getElementById("age").value);
-        var previousMyopia = parseFloat(document.getElementById("previousMyopia").value);
-        var indoorActivity = document.getElementById("indoorActivity").checked;
-        var nearWork = document.getElementById("nearWork").checked;
-        var parentHeredity = document.getElementById("parentHeredity").checked;
-        var acUse = document.getElementById("acUse").checked;
+    var age = parseInt(document.getElementById("age").value);
+    var initialAge = age; // Store the initial age
+    var previousMyopia = parseFloat(document.getElementById("previousMyopia").value);
+    var indoorActivity = document.getElementById("indoorActivity").checked;
+    var nearWork = document.getElementById("nearWork").checked;
+    var parentHeredity = document.getElementById("parentHeredity").checked;
+    var acUse = document.getElementById("acUse").checked;
 
-        // Calculate total activity impact per year
-        var activityImpactPerSixMonths = 0;
-        if (indoorActivity) activityImpactPerSixMonths -= 0.1;
-        if (nearWork) activityImpactPerSixMonths -= 0.1;
-        if (parentHeredity) activityImpactPerSixMonths -= 0.1;
-        if (acUse) activityImpactPerSixMonths -= 0.1;
+    // Calculate total activity impact per year
+    var activityImpactPerSixMonths = 0;
+    if (indoorActivity) activityImpactPerSixMonths -= 0.1;
+    if (nearWork) activityImpactPerSixMonths -= 0.1;
+    if (parentHeredity) activityImpactPerSixMonths -= 0.1;
+    if (acUse) activityImpactPerSixMonths -= 0.1;
 
-        var myopiaResults = document.getElementById("myopiaResults");
-        myopiaResults.innerHTML = ''; // Clear previous results
+    var myopiaResults = document.getElementById("myopiaResults");
+    myopiaResults.innerHTML = ''; // Clear previous results
 
-        var ageLabels = [];
-        var myopiaValues = [];
+    var ageLabels = [];
+    var myopiaValues = [];
 
-        while (age <= 20) {
-            var growthRate;
-            if (age >= 3 && age < 6) {
-                growthRate = -0.55;
-            } else if (age >= 6 && age < 10) {
-                growthRate = -0.45;
-            } else if (age >= 10 && age < 14) {
-                growthRate = -0.35;
-            } else {
-                growthRate = -0.25; // For ages 14 and above
-            }
+    while (age <= 20) {
+        var growthRate;
+        if (age >= 3 && age < 6) {
+            growthRate = -0.55;
+        } else if (age >= 6 && age < 10) {
+            growthRate = -0.45;
+        } else if (age >= 10 && age < 14) {
+            growthRate = -0.35;
+        } else {
+            growthRate = -0.25; // For ages 14 and above
+        }
 
+        // Skip the calculation for the initial age and use the input value
+        if (age !== initialAge) {
             // Apply the growth rate and activity impact for each six-month period
             for (var i = 0; i < 2; i++) { // Each year has 2 six-month periods
                 previousMyopia += (growthRate + activityImpactPerSixMonths);
             }
-
-            myopiaResults.innerHTML += `<li>Age ${age}: ${previousMyopia.toFixed(2)} Diopters</li>`;
-            ageLabels.push(age);
-            myopiaValues.push(previousMyopia.toFixed(2));
-
-            age++;
         }
 
-        // Color coding for bar chart from red to green
-        var backgroundColors = myopiaValues.map(value => {
-            let myopia = parseFloat(value);
-            if (myopia >= -1) return 'rgba(255, 99, 132, 0.6)'; // Red
-            else if (myopia >= -2) return 'rgba(255, 159, 64, 0.6)'; // Orange
-            else if (myopia >= -3) return 'rgba(255, 205, 86, 0.6)'; // Yellow
-            else if (myopia >= -4) return 'rgba(75, 192, 192, 0.6)'; // Green
-            else return 'rgba(54, 162, 235, 0.6)'; // Blue
-        });
+        myopiaResults.innerHTML += `<li>Age ${age}: ${previousMyopia.toFixed(2)} Diopters</li>`;
+        ageLabels.push(age);
+        myopiaValues.push(previousMyopia.toFixed(2));
 
-        var tabularCtx = document.getElementById('tabularChart').getContext('2d');
-        new Chart(tabularCtx, {
-            type: 'bar',
-            data: {
-                labels: ageLabels,
-                datasets: [{
-                    label: 'Myopia Level (Diopters)',
-                    data: myopiaValues,
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value + ' Diopters';
-                            },
-                            stepSize: 1,
-                            suggestedMin: 0,
-                            suggestedMax: -15
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: 'Myopia Levels by Age (Bar Chart)'
+        age++;
+    }
+
+    // Color coding for bar chart from red to green
+    var backgroundColors = myopiaValues.map(value => {
+        let myopia = parseFloat(value);
+        if (myopia >= -1) return 'rgba(255, 99, 132, 0.6)'; // Red
+        else if (myopia >= -2) return 'rgba(255, 159, 64, 0.6)'; // Orange
+        else if (myopia >= -3) return 'rgba(255, 205, 86, 0.6)'; // Yellow
+        else if (myopia >= -4) return 'rgba(75, 192, 192, 0.6)'; // Green
+        else return 'rgba(54, 162, 235, 0.6)'; // Blue
+    });
+
+    var tabularCtx = document.getElementById('tabularChart').getContext('2d');
+    new Chart(tabularCtx, {
+        type: 'bar',
+        data: {
+            labels: ageLabels,
+            datasets: [{
+                label: 'Myopia Level (Diopters)',
+                data: myopiaValues,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' Diopters';
+                        },
+                        stepSize: 1,
+                        suggestedMin: 0,
+                        suggestedMax: -15
                     }
                 }
+            },
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                title: {
+                    display: true,
+                    text: 'Myopia Levels by Age (Bar Chart)'
+                }
             }
-        });
-    }
+        }
+    });
+}
+
 </script>
 
 </body>
