@@ -76,6 +76,8 @@
 </div>
 
 <script>
+    let chart; // Global variable to store the chart instance
+
     function calculateMyopia() {
         var age = parseInt(document.getElementById("age").value);
         var initialAge = age; // Store the initial age
@@ -135,8 +137,13 @@
             else return 'rgba(54, 162, 235, 0.6)'; // Blue
         });
 
+        // Destroy the previous chart instance if it exists
+        if (chart) {
+            chart.destroy();
+        }
+
         var tabularCtx = document.getElementById('tabularChart').getContext('2d');
-        new Chart(tabularCtx, {
+        chart = new Chart(tabularCtx, {
             type: 'bar',
             data: {
                 labels: ageLabels,
